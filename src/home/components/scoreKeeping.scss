@@ -1,0 +1,121 @@
+.scorecontainer {
+  display: block;
+  font-family: 'Arial';
+  min-height: calc(100vh - 128px);
+  padding: 3em 0 1em 1em; 
+}
+
+.newnumber {
+  background-color: #b10dc9;
+  border-radius: 20px;
+  height: 15vh;
+  min-height: 10em;
+};
+
+.tracker {
+  align-content: space-around;
+  background-color: #b10dc9;
+  border-radius: 40px;
+  display: flex;
+  flex-flow: row wrap;
+  height: 60vh;
+  justify-content: space-around;
+  margin: 1em auto 0;
+  min-height: 30em;
+  padding: 0 0 2em;
+}
+
+.trackertitle {
+  display: block;
+  width: 92%;
+}
+
+.trackernumbers {
+  align-content: space-around;
+  display: flex;
+  flex-flow: row wrap;
+  height: 85%;
+  justify-content: space-around;
+  margin: 0 auto;
+  width: 92%;
+}
+
+.trackercolumn {flex-flow: column nowrap;}
+.trackerrow {flex-flow: row nowrap;}
+
+.trackertile {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  justify-content: space-around;
+}
+
+.trackersquare {
+  align-items: center;
+  background-color: #111;
+  border-radius: 5px;
+  color: #111;
+  display: flex;
+  flex: 0 1 auto;
+  height: 1.8vh;
+  justify-content: space-around;
+  min-height: 0.8em;
+  width: 85%;
+}
+
+.trackertitlesquare {
+  font-size: 1.5em;
+  width: 18%;
+}
+
+.title-0 {background-color: #0074d9;}
+.title-1 {background-color: #ff851b;}
+.title-2 {background-color: #ffdc00;}
+.title-3 {background-color: #2ecc40;}
+.title-4 {background-color: #ff4136;}
+
+.square-b {
+  background-color: lighten(#0074d9, 30%);
+  color: lighten(#0074d9, 30%);
+}
+
+.square-i {
+  background-color: lighten(#ff851b, 30%);
+  color: lighten(#ff851b, 30%);
+}
+
+.square-n {
+  background-color: lighten(#ffdc00, 30%);
+  color: lighten(#ffdc00, 30%);
+}
+
+.square-g {
+  background-color: lighten(#2ecc40, 30%);
+  color: lighten(#2ecc40, 30%);
+}
+
+.square-o {
+  background-color: lighten(#ff4136, 30%);
+  color: lighten(#ff4136, 30%);
+}
+
+
+.poolball {
+  background-image: radial-gradient(circle at 45% 45%, #fff 35%, #fff 20%, #ff4136 45%);
+  border-radius: 50%;
+  box-shadow: 0.6em 0.9em 1.2em rgba(0, 0, 0, 0.5);
+  display: absolute;
+  height: 5em;
+  margin: 1em auto;
+  width: 5em;
+}
+
+.poolball .poolballnum {
+  color: #282828;
+  display: relative;
+  font-family: cursive;
+  font-size: 1em;
+  margin: 1.5em 0 0 1.2em;
+  position: absolute;
+}
+

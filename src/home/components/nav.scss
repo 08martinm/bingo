@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css?family=Volkhov');
+
+.container {
+  background-color: #001f3f;
+  min-height: 4.5em;
+  width: 100%;
+}
+
+.nav {
+  color: #fffffa;
+  display: inline-block;
+  position: absolute;
+  text-decoration: none;
+  top: 1.75em;
+}
+
+.login {right: 1em;}
+.home {left: 1em;}
+.route {text-decoration: none;}
+
+.route:hover {
+  background-color: #d3d0cb;
+  text-decoration: none;
+}
+
+
+.text-container {
+  display: inline-block;
+  margin: 0 auto;
+  text-align: center;
+  width: 100%;
+}
+
+.title {
+  color: #fffffa;
+  font-family: 'Volkhov', serif;
+}

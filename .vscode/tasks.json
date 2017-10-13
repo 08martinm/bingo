@@ -1,0 +1,18 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "taskName": "build",
+      "command": "msbuild",
+      "args": [
+        "/property:GenerateFullPaths=true",
+        "/t:build"
+      ],
+      "group": "build",
+      "presentation": {
+        "reveal": "silent"
+      },
+      "problemMatcher": "$msCompile"
+    }
+  ]
+}

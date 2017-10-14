@@ -1,5 +1,6 @@
 .base {
   background-color: #ddd;
+  font-family: 'Roboto', sans-serif;
   min-height: 710;
   min-width: 785px;
 }

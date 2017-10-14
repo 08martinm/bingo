@@ -57,6 +57,8 @@
   width: 75%;
 }
 
+.pointer {cursor: pointer;}
+
 .bingotitle {
   width: 15%;
 }
@@ -80,7 +82,14 @@
 
 .bingobutton i {
   animation: move 4s infinite 5s;
-  background: linear-gradient(to left, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.03) 1%, rgba(255, 255, 255, 0.6) 30%, rgba(255, 255, 255, 0.85) 50%, rgba(255, 255, 255, 0.85) 70%, rgba(255, 255, 255, 0.85) 71%, rgba(255, 255, 255, 0) 100%);
+  background: linear-gradient(to left, 
+  rgba(255, 255, 255, 0) 0%, 
+  rgba(255, 255, 255, 0.03) 10%, 
+  rgba(255, 255, 255, 0.6) 30%, 
+  rgba(255, 255, 255, 0.85) 50%, 
+  rgba(255, 255, 255, 0.85) 70%, 
+  rgba(255, 255, 255, 0.85) 71%, 
+  rgba(255, 255, 255, 0) 100%);
   height: 100%;
   left: 0;
   opacity: 0;
@@ -112,3 +121,8 @@
 .square-n {background-color: lighten(#ffdc00, 30%);}
 .square-g {background-color: lighten(#2ecc40, 30%);}
 .square-o {background-color: lighten(#ff4136, 30%);}
+
+.selected {
+  background-color: #f012be;
+  color: #f012be;
+}

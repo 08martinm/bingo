@@ -73,34 +73,15 @@
 .title-3 {background-color: #2ecc40;}
 .title-4 {background-color: #ff4136;}
 
-.square-b {
-  background-color: lighten(#0074d9, 30%);
-  color: lighten(#0074d9, 30%);
-}
-
-.square-i {
-  background-color: lighten(#ff851b, 30%);
-  color: lighten(#ff851b, 30%);
-}
-
-.square-n {
-  background-color: lighten(#ffdc00, 30%);
-  color: lighten(#ffdc00, 30%);
-}
-
-.square-g {
-  background-color: lighten(#2ecc40, 30%);
-  color: lighten(#2ecc40, 30%);
-}
-
-.square-o {
-  background-color: lighten(#ff4136, 30%);
-  color: lighten(#ff4136, 30%);
-}
+.square-b {background-color: lighten(#0074d9, 30%);}
+.square-i {background-color: lighten(#ff851b, 30%);}
+.square-n {background-color: lighten(#ffdc00, 30%);}
+.square-g {background-color: lighten(#2ecc40, 30%);}
+.square-o {background-color: lighten(#ff4136, 30%);}
 
 
 .poolball {
-  background-image: radial-gradient(circle at 45% 45%, #fff 35%, #fff 20%, #ff4136 45%);
+  background-image: radial-gradient(circle at 45% 45%, #fff 35%, #fff 20%, #111 45%);
   border-radius: 50%;
   box-shadow: 0.6em 0.9em 1.2em rgba(0, 0, 0, 0.5);
   display: absolute;
@@ -108,6 +89,12 @@
   margin: 1em auto;
   width: 5em;
 }
+
+.color-b {background-image: radial-gradient(circle at 45% 45%, #fff 35%, #fff 20%, #0074d9 45%);};
+.color-i {background-image: radial-gradient(circle at 45% 45%, #fff 35%, #fff 20%, #ff851b 45%);};
+.color-n {background-image: radial-gradient(circle at 45% 45%, #fff 35%, #fff 20%, #ffdc00 45%);};
+.color-g {background-image: radial-gradient(circle at 45% 45%, #fff 35%, #fff 20%, #2ecc40 45%);};
+.color-o {background-image: radial-gradient(circle at 45% 45%, #fff 35%, #fff 20%, #ff4136 45%);};
 
 .poolball .poolballnum {
   color: #282828;

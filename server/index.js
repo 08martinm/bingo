@@ -42,7 +42,56 @@ db.on('open', () => {
   app.use(history());
   app.use(routes);
   app.use(express.static(__dirname + '/../public'));
-  app.listen(process.env.PORT || port || 5000, () => console.log('Server on:', port));
+  const server = app.listen(process.env.PORT || port || 5000, err => {
+    if (err) throw(err);
+    console.log('Server on:', port);
+  });
+  const io = require('socket.io')(server);
+  let numUsers = 0;
+  let connectedUsers = {};
+  let gameMaster = null;
+  io.on('connection', socket => {
+    numUsers++;
+    connectedUsers[socket.id] = socket;
+    console.log(' a user connected; number of current users is now', numUsers);
+    
+    socket.on('update user count', () => {
+      io.emit('userCountUpdate', numUsers);
+    });
+
+    socket.on('am i game master?', () => {
+      if (numUsers == 1 || gameMaster == socket.id || gameMaster == null) {
+        gameMaster = socket.id;
+        connectedUsers[socket.id].emit('gameMaster', true);
+      } else {
+        socket.to(JSON.stringify(socket.id)).emit('gameMaster', false);
+      }
+    });
+
+    socket.on('disconnect', () => {
+      numUsers--;
+      socket.broadcast.emit('userCountUpdate', numUsers);
+      delete connectedUsers[socket.id];
+      console.log('user disconnected; number of current users is now', numUsers);
+      if (gameMaster == socket.id) {
+        let UserKeys = Object.keys(connectedUsers);
+        gameMaster = UserKeys.length > 0 ? UserKeys[0] : null;
+        if (gameMaster) connectedUsers[gameMaster].emit('gameMaster', true);
+      }
+    });
+
+    socket.on('I won, suckers', function() {
+      socket.broadcast.emit('You all lost');
+    });
+
+    socket.on('draw lottery ball', function(data) {
+      io.emit('new lottery ball', data);
+    });
+
+    socket.on('reset all boards', function() {
+      io.emit('resetting boards');
+    });
+  });
 });
 
 module.exports = connection;

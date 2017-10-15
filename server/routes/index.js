@@ -1,5 +1,4 @@
 const router = require('express').Router();
-const Emails = require('./emails.js');
 const User = require('./users.js');
 const Login = require('./login.js');
 const Logout = require('./logout.js');
@@ -12,10 +11,6 @@ const passport = require('../passport.js');
 router.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../', 'public', 'index.html'));
 });
-
-// Emails
-router.post('/api/emails', Emails.post);
-router.get('/api/verify', Emails.verify);
 
 // Users
 router.get('/api/users', User.get);

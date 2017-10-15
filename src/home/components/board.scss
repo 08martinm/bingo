@@ -67,9 +67,9 @@
   background: rgba(0, 0, 0, 0.5);
   border: 3px solid #fafafa;
   color: #fafafa;
-  font-size: 2em;
-  letter-spacing: 5px;
-  margin: 2em 10%;
+  font-size: 1.3em;
+  letter-spacing: 15px;
+  margin: 1em 10%;
   padding: 1em;
   position: relative;
   text-align: center;
@@ -125,4 +125,14 @@
 .selected {
   background-color: #f012be;
   color: #f012be;
+}
+
+.flexify {
+  align-content: center;
+  display: flex;
+  justify-content: space-around;
+}
+
+.btnspacing {
+  margin: 1em auto 2em !important;
 }

@@ -47,49 +47,54 @@ db.on('open', () => {
     console.log('Server on:', port);
   });
   const io = require('socket.io')(server);
-  let numUsers = 0;
-  let connectedUsers = {};
+  let rooms = {};
   let gameMaster = null;
   io.on('connection', socket => {
-    numUsers++;
-    connectedUsers[socket.id] = socket;
-    console.log(' a user connected; number of current users is now', numUsers);
-    
-    socket.on('update user count', () => {
-      io.emit('userCountUpdate', numUsers);
-    });
-
-    socket.on('am i game master?', () => {
-      if (numUsers == 1 || gameMaster == socket.id || gameMaster == null) {
-        gameMaster = socket.id;
-        connectedUsers[socket.id].emit('gameMaster', true);
+    socket.on('room', (room) => {
+      if (rooms.hasOwnProperty(room)) {
+        rooms[room].numUsers++;
+        rooms[room].connectedUsers[socket.id] = socket;
       } else {
-        socket.to(JSON.stringify(socket.id)).emit('gameMaster', false);
+        rooms[room] = {numUsers: 1, gameMaster: socket.id, connectedUsers: {}};
+        rooms[room].connectedUsers[socket.id] = socket;
+        rooms[room].connectedUsers[JSON.stringify(socket.id)].emit('gameMaster', true);
+      }
+      io.emit('userCountUpdate', rooms[room]);
+    });
+
+    // socket.on('am i game master?', (room) => {
+    //   if (rooms[room].numUsers == 1 || rooms[room].gameMaster == socket.id || rooms[room].gameMaster == null) {
+    //     rooms[room].gameMaster = socket.id;
+        
+    //   } else {
+    //     socket.to(JSON.stringify(socket.id)).emit('gameMaster', false);
+    //   }
+    // });
+
+    socket.on('disconnect', (room) => {
+      rooms[room].numUsers--;
+      socket.broadcast.emit('userCountUpdate', rooms[room].numUsers);
+      delete rooms[room].connectedUsers[socket.id];
+      console.log('user disconnected; number of current users is now', rooms[room].numUsers);
+      if (rooms[room].gameMaster == socket.id) {
+        let UserKeys = Object.keys(rooms[room].connectedUsers);
+        rooms[room].gameMaster = UserKeys.length > 0 ? UserKeys[0] : null;
+        if (rooms[room].gameMaster) {
+          rooms[room].connectedUsers[gameMaster].emit('gameMaster', true);
+        }
       }
     });
 
-    socket.on('disconnect', () => {
-      numUsers--;
-      socket.broadcast.emit('userCountUpdate', numUsers);
-      delete connectedUsers[socket.id];
-      console.log('user disconnected; number of current users is now', numUsers);
-      if (gameMaster == socket.id) {
-        let UserKeys = Object.keys(connectedUsers);
-        gameMaster = UserKeys.length > 0 ? UserKeys[0] : null;
-        if (gameMaster) connectedUsers[gameMaster].emit('gameMaster', true);
-      }
+    socket.on('I won, suckers', function(room) {
+      socket.broadcast.to(room).emit('You all lost');
     });
 
-    socket.on('I won, suckers', function() {
-      socket.broadcast.emit('You all lost');
+    socket.on('draw lottery ball', function(data, room) {
+      socket.to(room).emit('new lottery ball', data);
     });
 
-    socket.on('draw lottery ball', function(data) {
-      io.emit('new lottery ball', data);
-    });
-
-    socket.on('reset all boards', function() {
-      io.emit('resetting boards');
+    socket.on('reset all boards', function(room) {
+      socket.to(room).emit('resetting boards');
     });
   });
 });

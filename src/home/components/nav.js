@@ -16,7 +16,7 @@ const Nav = props => {
         </div>
         <div className={`${styles.login} ${styles.nav}`}>
           {props.handleAuth.loggedin ?
-            <Link to='login'><span className={styles.route}>Sign Out</span></Link> :
+            <Link to='profile'><span className={styles.route}>Profile</span></Link> :
             url[url.length - 1] == 'login' ? 
               <span>Login</span> :
               <Link to='login'><span className={styles.route}>Login</span></Link>

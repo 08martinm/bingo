@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {BrowserRouter as Router, Route, Switch, Redirect} from 'react-router-dom';
 import Proptypes from 'prop-types';
+import RoomSelector from './home/roomSelector';
 import Home from './home';
 import Verify from './pages/login/verify';
 import Login from './pages/login';
@@ -46,11 +47,12 @@ class App extends Component {
       <Router>
         <div className={`container-fluid ${styles.base}`}>
           <Switch>
-            <RouteWithAuth exact path='/' component={Home} handleAuth={handleAuth}/>
+            <RouteWithAuth exact path='/' component={RoomSelector} handleAuth={handleAuth}/>
             <RouteWithAuth path="/verify" component={Verify} handleAuth={handleAuth}/>
             <RouteWithAuth path='/login' component={Login} handleAuth={handleAuth}/>
+            <RouteWithAuth path='/room' component={Home} handleAuth={handleAuth}/>
             <Route path='/reset' component={Reset}/>
-            <PrivateRoute path='/profile' component={Profile} auth={this.state.loggedin}/>
+            <PrivateRoute path='/profile' component={Profile} handleAuth={handleAuth} auth={this.state.loggedin}/>
             <Redirect to='/' />
           </Switch>
         </div>
@@ -59,10 +61,10 @@ class App extends Component {
   }
 }
 
-const PrivateRoute = ({ component: Component, auth: Auth, ...rest }) => (
+const PrivateRoute = ({ component: Component, handleAuth: handleAuth, auth: Auth, ...rest }) => (
   <Route {...rest} render={props => (
     Auth ? (
-      <Component {...props}/>
+      <Component handleAuth={handleAuth} {...props}/>
     ) : (
       <Redirect to={{
         pathname: '/login',
@@ -76,6 +78,7 @@ PrivateRoute.propTypes = {
   component: Proptypes.oneOfType([Proptypes.object, Proptypes.func]).isRequired,
   location: Proptypes.object,
   auth: Proptypes.bool.isRequired,
+  handleAuth: Proptypes.object.isRequired,
 };
 
 const RouteWithAuth = ({component: Component, handleAuth: handleAuth, ...rest}) => (

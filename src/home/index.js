@@ -77,12 +77,15 @@ class Home extends Component {
   }
 
   componentDidMount() {
-    socket.emit('update user count');
-    socket.emit('am i game master?');
+    socket.on('connect', () => {
+      socket.emit('room', this.state.roomNum);
+      socket.emit('am i game master?', this.state.roomNum);
+    });
   }
 
-  componentWillUnmount() {
-    socket.emit('user left', {username: this.props.handleAuth.username});
+  componentWillMount() {
+    let urlArr = window.location.href.split('/');
+    this.setState({roomNum: 'Room #' + urlArr[urlArr.length - 1]});
   }
 
   setGameMaster(bool) {
@@ -129,7 +132,7 @@ class Home extends Component {
     if (num >= 61 && num <= 80) letter = 'g';
     if (num >= 81 && num <= 100) letter = 'o';
     let data = {letter: letter, number: num};
-    socket.emit('draw lottery ball', data);
+    socket.emit('draw lottery ball', data, this.state.roomNum);
     console.log('just emitted "draw lottery ball"', data, 'and state is', this.state);
   }
 
@@ -156,7 +159,7 @@ class Home extends Component {
   }
 
   resetAllBoards() {
-    socket.emit('reset all boards');
+    socket.emit('reset all boards', this.state.roomNum);
   }
   
   resetBoard() {
@@ -215,7 +218,7 @@ class Home extends Component {
     console.log('answer is', answer);
     if (answer) {
       this.setState({won: answer, invalidAttempt: false});
-      socket.emit('I won, suckers');
+      socket.emit('I won, suckers', this.state.roomNum);
     } else {
       this.setState({invalidAttempt: true});
       let cb = () => this.setState({invalidAttempt: false}).bind(this);

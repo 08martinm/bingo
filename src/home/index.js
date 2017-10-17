@@ -62,7 +62,7 @@ class Home extends Component {
     };
     socket.on('new lottery ball', payload => this.updateFromSockets(payload));
     socket.on('resetting boards', () => this.resetBoard());
-    socket.on('gameMaster', bool => this.setGameMaster(bool));
+    socket.on('gameMaster', () => this.setGameMaster(true));
     socket.on('userCountUpdate', num => this.setNumUsers(num));
     socket.on('You all lost', () => this.lostGame());
     this.clickSquare = this.clickSquare.bind(this);
@@ -76,16 +76,23 @@ class Home extends Component {
     this.lostGame = this.lostGame.bind(this);
   }
 
-  componentDidMount() {
-    socket.on('connect', () => {
-      socket.emit('room', this.state.roomNum);
-      socket.emit('am i game master?', this.state.roomNum);
-    });
-  }
-
   componentWillMount() {
     let urlArr = window.location.href.split('/');
     this.setState({roomNum: 'Room #' + urlArr[urlArr.length - 1]});
+  }
+
+  componentDidMount() {
+    socket.emit('join', this.state.roomNum);
+    window.addEventListener('beforeunload', this.disconnectSocket.bind(this));
+  }
+
+  componentWillUnmount() {
+    socket.emit('leave', this.state.roomNum);
+    window.removeEventListener('beforeunload', this.disconnectSocket);
+  }
+
+  disconnectSocket() {
+    socket.emit('leave', this.state.roomNum);
   }
 
   setGameMaster(bool) {

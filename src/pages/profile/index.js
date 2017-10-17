@@ -1,5 +1,5 @@
 import React from 'react';
-import Nav from '../../home/components/Nav';
+import Nav from '../../home/components/nav';
 import PropTypes from 'prop-types';
 
 const Profile = props => (

@@ -49,6 +49,14 @@ db.on('open', () => {
   const io = require('socket.io')(server);
   let rooms = {};
   io.on('connection', socket => {
+    let updateRoomsAndUsers = () => {
+      let response = {};
+      Object.keys(rooms).forEach(key => {
+        response[key] = rooms[key].numUsers;
+      });
+      io.emit('update rooms and users', response);
+    };
+
     socket.on('join', (room) => {
       socket.join(room);
       if (rooms.hasOwnProperty(room)) {
@@ -56,46 +64,39 @@ db.on('open', () => {
       } else {
         rooms[room] = {numUsers: 0, gameMaster: socket.id, connectedUsers: {}};
         rooms[room].connectedUsers[socket.id] = socket;
-        socket.to(rooms[room].connectedUsers[socket.id]).emit('gameMaster', true);
+        io.to(socket.id).emit('gameMaster');
       }
       rooms[room].numUsers++;
       io.to(room).emit('userCountUpdate', rooms[room].numUsers);
-      console.log('user has joined room', room, 'and rooms is', rooms);
+      updateRoomsAndUsers();
     });
 
     let leaveRoom = room => {
       socket.leave(room);
-      if(rooms.hasOwnProperty(room)) {
+      if(rooms.hasOwnProperty(room) && rooms[room].connectedUsers.hasOwnProperty(socket.id)) {
         rooms[room].numUsers--;
-        socket.broadcast.emit('userCountUpdate', rooms[room].numUsers);
+        socket.broadcast.to(room).emit('userCountUpdate', rooms[room].numUsers);
         delete rooms[room].connectedUsers[socket.id];
         if (rooms[room].gameMaster == socket.id) {
           let UserKeys = Object.keys(rooms[room].connectedUsers);
           rooms[room].gameMaster = UserKeys.length > 0 ? UserKeys[0] : null;
-          if (rooms[room].gameMaster) {
-            io.to(socket.id).emit('gameMaster');
+          if (rooms[room].gameMaster != null) {
+            io.to(rooms[room].gameMaster).emit('gameMaster');
           } else {
             delete rooms[room];
             socket.broadcast.emit('delete room');
           }
         }
       }
-      console.log('Left room & room is', rooms);
+      updateRoomsAndUsers();
     };
 
     socket.on('leave', room => leaveRoom(room));
-
-    socket.on('I won, suckers', function(room) {
-      socket.to(room).emit('You all lost');
-    });
-
-    socket.on('draw lottery ball', function(data, room) {
-      io.to(room).emit('new lottery ball', data);
-    });
-
-    socket.on('reset all boards', function(room) {
-      io.to(room).emit('resetting boards');
-    });
+    socket.on('disconnect', room => leaveRoom(room));
+    socket.on('I won, suckers', room => socket.broadcast.to(room).emit('You all lost'));
+    socket.on('reset all boards', room => io.to(room).emit('resetting boards'));
+    socket.on('draw lottery ball', (data, room) => io.to(room).emit('new lottery ball', data));
+    socket.on('get rooms and users', () => updateRoomsAndUsers());
   });
 });
 

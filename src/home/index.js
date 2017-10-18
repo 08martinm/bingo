@@ -83,15 +83,15 @@ class Home extends Component {
 
   componentDidMount() {
     socket.emit('join', this.state.roomNum);
-    window.addEventListener('beforeunload', this.disconnectSocket.bind(this));
+    window.addEventListener('beforeunload', this.reconnectSocket.bind(this));
   }
 
   componentWillUnmount() {
     socket.emit('leave', this.state.roomNum);
-    window.removeEventListener('beforeunload', this.disconnectSocket);
+    window.removeEventListener('beforeunload', this.reconnectSocket);
   }
 
-  disconnectSocket() {
+  reconnectSocket() {
     socket.emit('leave', this.state.roomNum);
   }
 

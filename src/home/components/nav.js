@@ -19,7 +19,7 @@ const Nav = props => {
             <Link to='profile'><span className={styles.route}>Profile</span></Link> :
             url[url.length - 1] == 'login' ? 
               <span>Login</span> :
-              <Link to='login'><span className={styles.route}>Login</span></Link>
+              <Link to='/login'><span className={styles.route}>Login</span></Link>
           }
         </div>
         <div className={styles['text-container']}>

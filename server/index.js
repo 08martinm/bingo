@@ -49,6 +49,8 @@ db.on('open', () => {
   const io = require('socket.io')(server);
   let rooms = {};
   io.on('connection', socket => {
+    let currRoom = null;
+
     let updateRoomsAndUsers = () => {
       let response = {};
       Object.keys(rooms).forEach(key => {
@@ -68,6 +70,7 @@ db.on('open', () => {
       }
       rooms[room].numUsers++;
       io.to(room).emit('userCountUpdate', rooms[room].numUsers);
+      currRoom = room;
       updateRoomsAndUsers();
     });
 
@@ -92,7 +95,7 @@ db.on('open', () => {
     };
 
     socket.on('leave', room => leaveRoom(room));
-    socket.on('disconnect', room => leaveRoom(room));
+    socket.on('disconnect', () => leaveRoom(currRoom));
     socket.on('I won, suckers', room => socket.broadcast.to(room).emit('You all lost'));
     socket.on('reset all boards', room => io.to(room).emit('resetting boards'));
     socket.on('draw lottery ball', (data, room) => io.to(room).emit('new lottery ball', data));

@@ -140,7 +140,6 @@ class Home extends Component {
     if (num >= 81 && num <= 100) letter = 'o';
     let data = {letter: letter, number: num};
     socket.emit('draw lottery ball', data, this.state.roomNum);
-    console.log('just emitted "draw lottery ball"', data, 'and state is', this.state);
   }
 
   clickSquare(evt) {
@@ -192,7 +191,6 @@ class Home extends Component {
     let board = this.state.board;
     'bingo'.split('').forEach(letter => {
       let sortedRow = Object.keys(board[letter]).sort((key1, key2) => board[letter][key1].order - board[letter][key2].order);
-      console.log(sortedRow);
       let currRow = [];
       sortedRow.forEach(numKey => currRow.push([board[letter][numKey].clicked, board[letter][numKey].drawn]));
       arr.push(currRow);
@@ -222,7 +220,6 @@ class Home extends Component {
     }
     
     if (diag1 == 5 || diag2 == 5) answer = true;
-    console.log('answer is', answer);
     if (answer) {
       this.setState({won: answer, invalidAttempt: false});
       socket.emit('I won, suckers', this.state.roomNum);

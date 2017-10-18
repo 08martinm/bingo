@@ -67,7 +67,7 @@ let Board = props => (
 );
 
 Board.propTypes = {
-  invalidAttempt: PropTypes.invalidAttempt,
+  invalidAttempt: PropTypes.bool.isRequired,
   drawLotteryBall: PropTypes.func.isRequired,
   handleAuth: PropTypes.object.isRequired,
   newBoard: PropTypes.func.isRequired,

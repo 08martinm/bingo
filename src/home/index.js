@@ -76,14 +76,13 @@ class Home extends Component {
     this.lostGame = this.lostGame.bind(this);
   }
 
-  componentWillMount() {
-    let urlArr = window.location.href.split('/');
-    this.setState({roomNum: 'Room #' + urlArr[urlArr.length - 1]});
-  }
-
   componentDidMount() {
-    socket.emit('join', this.state.roomNum);
-    window.addEventListener('beforeunload', this.reconnectSocket.bind(this));
+    let urlArr = window.location.href.split('/');
+    let roomNum = 'Room #' + urlArr[urlArr.length - 1];
+    this.setState({roomNum: roomNum});
+    socket.emit('join', roomNum);
+    let self = this;
+    window.addEventListener('beforeunload', self.reconnectSocket);
   }
 
   componentWillUnmount() {
@@ -225,7 +224,8 @@ class Home extends Component {
       socket.emit('I won, suckers', this.state.roomNum);
     } else {
       this.setState({invalidAttempt: true});
-      let cb = () => this.setState({invalidAttempt: false}).bind(this);
+      let cb = () => this.setState({invalidAttempt: false});
+      cb.bind(this);
       setTimeout(() => cb(), 2000);
     }
 

@@ -5,7 +5,7 @@ exports.devServer =
   { 
     contentBase: path.join(__dirname, '../../public'),
     historyApiFallback: true,
-    stats: 'normal',
+    stats: !env ? 'normal' : {warnings: false},
     hot: env,
     overlay: {
       errors: env,

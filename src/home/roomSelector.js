@@ -13,12 +13,12 @@ class RoomSelector extends Component {
       games: [],
       nextRoom: 1,
     };
-    socket.on('update rooms and users', newState => this.updateRoomsAndUsers(newState));
     this.updateRoomsAndUsers = this.updateRoomsAndUsers.bind(this);
     this.getNextRoom = this.getNextRoom.bind(this);
   }
 
   componentDidMount() {
+    socket.on('update rooms and users', newState => this.updateRoomsAndUsers(newState));
     socket.emit('get rooms and users');
   }
 

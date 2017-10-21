@@ -1,0 +1,32 @@
+.gamemodal {
+  color: #000;
+  text-align: left;
+}
+
+.checkbox {
+  margin: 1em;
+}
+
+.checkboxtext {
+  display: inline-block;
+  margin: 0 0 1em 1em;
+}
+
+.specific.roomnumber {
+  display: inline-block;
+  margin: 0 0 0 1em;
+  width: 6em;
+}
+
+.footer {
+  align-content: center;
+  display: flex;
+  height: 2em;
+  justify-content: space-evenly;
+  margin: 1.5em 0 2em;
+}
+
+.width {
+  height: 2.5em;
+  width: 150px;
+}

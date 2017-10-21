@@ -1,11 +1,12 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import Nav from './components/nav';
-import Modal from './components/modal';
+import GameModal from './components/gameModal';
+import PasswordModal from './components/passwordModal';
 import styles from './roomSelector.scss';
-import { Link, withRouter } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 import io from 'socket.io-client';
-
+import axios from 'axios';
 const socket = io();
 
 class RoomSelector extends Component {
@@ -14,13 +15,18 @@ class RoomSelector extends Component {
     this.state = {
       games: [],
       nextRoom: 1,
-      showModal: false,
+      createGameModal: false,
+      enterPasswordModal: false,
+      roomName: '',
     };
     socket.on('game created', newRoom => this.routeToNewRoom(newRoom));
     this.updateRoomsAndUsers = this.updateRoomsAndUsers.bind(this);
     this.getNextRoom = this.getNextRoom.bind(this);
     this.toggleModal = this.toggleModal.bind(this);
     this.routeToNewRoom = this.routeToNewRoom.bind(this);
+    this.routeToGame = this.routeToGame.bind(this);
+    this.checkIfPrivate = this.checkIfPrivate.bind(this);
+    this.checkPassword = this.checkPassword.bind(this);
   }
 
   componentDidMount() {
@@ -31,7 +37,12 @@ class RoomSelector extends Component {
   updateRoomsAndUsers(newState) {
     let newGames = [];
     Object.keys(newState).forEach(keyName => {
-      newGames.push({room: keyName, number: newState[keyName]});
+      newGames.push({
+        room: keyName,
+        numUsers: newState[keyName].numUsers,
+        maxUsers: newState[keyName].maxUsers,
+        private: newState[keyName].private,
+      });
     });
     this.setState({games: newGames});
     this.getNextRoom();
@@ -39,7 +50,7 @@ class RoomSelector extends Component {
 
   getNextRoom()  {
     let rooms = {};
-    this.state.games.forEach(obj => rooms[obj.room] = true);
+    this.state.games.forEach(game => rooms[game.room] = true);
     let i = 1;
     while (rooms.hasOwnProperty('Room #' + i)) {
       i++;
@@ -50,19 +61,50 @@ class RoomSelector extends Component {
   toggleModal(evt) {
     evt.stopPropagation();
     let id = evt.target.id;
-    if (id == 'modal-backdrop' || id == 'modal-close' || id == 'create-game') {
-      this.setState({showModal: !this.state.showModal});
+    if (id == 'create-game') {
+      this.setState({createGameModal: true});
+    } else if (id == 'modal-backdrop' || id == 'modal-close') {
+      this.setState({createGameModal: false, enterPasswordModal: false, roomName: ''});
+    } else {
+      this.setState({enterPasswordModal: true, roomName: id});
     }
   }
 
   createGame(obj) {
-    console.log('about to create a new room');
     socket.emit('create new room', obj);
   }
 
   routeToNewRoom(newRoom) {
-    console.log('pushing to new room', newRoom);
     this.props.history.push('/room/' + newRoom);
+  }
+
+  routeToGame(newRoom) {
+    this.props.history.push('/room/' + newRoom);
+  }
+
+  checkIfPrivate(evt) {
+    let id = evt.currentTarget.id;
+    console.log('id clicked from checkIfPrivate is', id, evt.target, evt.currentTarget);
+    let game = this.state.games.find(game => game.room === id);
+    if (game.private) {
+      this.setState({enterPasswordModal: true, roomName: game.room});
+    } else {
+      this.props.history.push('/room/' + game.room);
+    }
+  }
+
+  checkPassword(obj) {
+    console.log('obj passed to checkPassword is', obj);
+    axios.post('/game', {
+      password: obj.password,
+      room: obj.room,
+    })
+      .then(function (response) {
+        console.log(response);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
   }
 
   render() {
@@ -85,14 +127,15 @@ class RoomSelector extends Component {
         <div className={`${styles.gamelist} text-center`}>
           <h3 className={styles.title}>Games available</h3>
           <div className='list-group'>
-            {this.state.games.map((game, key) => <GameContainer key={key} game={game} />)}
+            {this.state.games.map((game, key) => <GameContainer key={key} game={game} checkIfPrivate={this.checkIfPrivate}/>)}
             <div className={`list-group-item active ${styles.gamecontainer}`}>
               <div onClick={e => this.toggleModal(e)}>
                 <div id='create-game' className={`${styles.create}`}>
                   Create new Game (Room #{this.state.nextRoom})
                 </div>
               </div>
-              <GameModal show={this.state.showModal} toggleModal={this.toggleModal} nextRoom={this.state.nextRoom} games={this.state.games} createGame={this.createGame}/>
+              <GameModal show={this.state.createGameModal} toggleModal={this.toggleModal} nextRoom={this.state.nextRoom} games={this.state.games} createGame={this.createGame}/>
+              <PasswordModal show={this.state.enterPasswordModal} toggleModal={this.toggleModal} routeToGame={this.routeToGame} roomName={this.state.roomName} checkPassword={this.checkPassword} />
             </div>
           </div>
         </div>
@@ -112,158 +155,19 @@ RoomSelector.propTypes = {
 export default withRouter(RoomSelector);
 
 let GameContainer = props => {
+  console.log('props.game is', props.game);
+  let className = props.game.private ? 'fa-lock' : 'fa-unlock';
   return (
-    <Link to={'/room/' + props.game.room}>
-      <div className={`list-group-item ${styles.gamecontainer}`}>
-        <div className={`${styles.item1}`}>{props.game.room}</div>
-        <div className={`${styles.item2}`}><i className={`fa fa-users ${styles.icon}`} aria-hidden='true' />{props.game.number}</div>
-      </div>
-    </Link>
+    <div id={props.game.room} onClick={evt => props.checkIfPrivate(evt)} className={`list-group-item ${styles.gamecontainer}`}>
+      <div className={`${styles.item1}`}>{props.game.room}</div>
+      <div className={`${styles.item2}`}><i className={`fa ${className} ${styles.icon}`} aria-hidden='true' /></div>
+      <div className={`${styles.item3}`}><i className={`fa fa-user-times ${styles.icon}`} aria-hidden='true' />{props.game.numUsers}</div>
+      <div className={`${styles.item4}`}><i className={`fa fa-users ${styles.icon}`} aria-hidden='true' />{props.game.maxUsers}</div>
+    </div>
   );
 };
 
 GameContainer.propTypes = {
+  checkIfPrivate: PropTypes.func.isRequired,
   game: PropTypes.object.isRequired,
-};
-
-class GameModal extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      private: false,
-      roomName: '',
-      roomNum: 15,
-      roomPassword: '',
-      roomConfPassword: '',
-      errMsgs: [],
-    };
-    this.togglePrivate = this.togglePrivate.bind(this);
-    this.closeModal = this.closeModal.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
-  }
-
-  togglePrivate() {
-    console.log('evt fired in togglePrivate');
-    this.setState({private: !this.state.private});
-  }
-
-  closeModal(evt) {
-    evt.stopPropagation();
-    let id = evt.target.id;
-    if (id == 'modal-backdrop' || id == 'modal-close' || id == 'create-game') {
-      console.log('evt fired in closeModal');
-      this.setState({private: false, errMsgs: [], roomName: '', roomNum: 50, roomPassword: '', roomConfPassword: ''});
-      this.props.toggleModal(evt);
-    }
-  }
-
-  onSubmit(evt) {
-    evt.preventDefault();
-    let errMsgs = [];
-    if (this.state.private && (this.state.roomConfPassword != this.state.roomPassword)) {
-      errMsgs.push('Password and Confirm Password must match');
-    }
-
-    if (this.state.private && (this.state.roomPassword.length < 4 || this.state.roomPassword.length >= 25)) {
-      errMsgs.push('Password must be between 5 and 25 characters');
-    }
-
-    let myRe = /^[a-z0-9_]+$/i;
-    if (!myRe.exec(this.state.roomName)) {
-      errMsgs.push('Room name may only contain alphanumeric characters and underscores');
-    }
-
-    console.log('roomName is', this.state.roomName, 'and games is', this.props.games, 'reduce is', this.props.games.reduce((curr, obj) => curr || (obj.room == this.state.roomName), false));
-    if (this.props.games.reduce((curr, obj) => curr || (obj.room === this.state.roomName), false)) {
-      errMsgs.push('Hmmm... it appears that room name has already been taken!');
-    }
-
-    if (this.state.roomName.length <= 4 || this.state.roomName.length >= 25) {
-      errMsgs.push('Room name must be between 4 and 25 characters');
-    }
-
-    if (this.state.roomNum <= 0 || this.state.roomNum > 100) {
-      errMsgs.push('The maximum number of players must be between 1 and 100');
-    }
-
-    if (errMsgs.length > 0) {
-      this.setState({errMsgs: errMsgs});
-    } else {
-      this.setState({errMsgs: []});
-      let newGame = {};
-      newGame.maxUsers = +this.state.roomNum;
-      newGame.room = this.state.roomName;
-      newGame.private = this.state.private;
-      if (this.state.private) {
-        newGame.roomPassword = this.state.roomPassword;
-      }
-
-      this.props.createGame(newGame);
-    }
-  }
-
-  onChange(evt) {
-    evt.stopPropagation();
-    let newState = {};
-    newState[evt.target.id] = evt.target.value;
-    this.setState(newState);
-  }
-
-  render() {
-    return (
-      <Modal show={this.props.show} onClose={e => this.closeModal(e)}>
-        <form onSubmit={e => this.onSubmit(e)} className={`${styles.gamemodal}`}>
-          <div className='form-group'>
-            <label htmlFor='roomName'>Room Name</label>
-            <input type='text' className='form-control' id='roomName' aria-describedby='roomName' placeholder='Room Name' onChange={evt => this.onChange(evt)}/>
-          </div>
-          <div className='form-group'>
-            <label htmlFor='roomName'>Set Max Players:</label>
-            <input type='number' min='1' max='100' className={`form-control ${styles.specific} ${styles.roomnumber}`} id='roomNum' aria-describedby='roomNumber' defaultValue='15' onChange={evt => this.onChange(evt)}/>
-          </div>
-          <div className='form-check'>
-            <label className='form-check-label'>
-              <input type='checkbox' className={`${styles.checkbox} form-check-input`} onClick={() => this.togglePrivate()}/>
-              <div className={`${styles.checkboxtext}`}>Make game private? (requires password to join)</div>
-            </label>
-          </div>
-          {this.state.private && (
-            <div>
-              <div className='form-group'>
-                <label htmlFor='roomPassword'>Password</label>
-                <input type='password' className='form-control' id='roomPassword' placeholder='Password' onChange={evt => this.onChange(evt)}/>
-              </div>
-              <div className='form-group disabled'>
-                <label htmlFor='roomConfPassword'>Confirm Password</label>
-                <input type='password' className='form-control' id='roomConfPassword' placeholder='Confirm Password' onChange={evt => this.onChange(evt)}/>
-              </div>
-            </div>
-          )}
-          <div className={`${styles.footer}`}>
-            <button type='submit' className={`${styles.width} btn btn-primary`} onClick={this.onSubmit}>
-              Create Game!
-            </button>
-            <button id='modal-close' className={`${styles.width} btn btn-danger`}>Cancel</button>
-          </div>
-          {this.state.errMsgs.length > 0 &&
-            <div>
-              {this.state.errMsgs.map((val, key) => (
-                <div key={key} className='alert alert-danger'>
-                  {val}
-                </div>
-              ))}
-            </div>
-          }
-        </form>
-      </Modal>
-    );
-  }
-}
-
-GameModal.propTypes = {
-  show: PropTypes.bool.isRequired,
-  toggleModal: PropTypes.func.isRequired,
-  nextRoom: PropTypes.number.isRequired,
-  games: PropTypes.array.isRequired,
-  createGame: PropTypes.func.isRequired,
 };

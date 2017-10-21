@@ -10,6 +10,7 @@ const expressValidator = require('express-validator');
 const passport = require('./passport.js');
 const routes = require('./routes/index.js');
 const port = process.env.PORT || 5000;
+const router = require('express').Router();
 
 const MongoStore = require('connect-mongo')(session);
 mongoose.Promise = global.Promise;
@@ -42,12 +43,24 @@ db.on('open', () => {
   app.use(history());
   app.use(routes);
   app.use(express.static(__dirname + '/../public'));
+  router.post('/game', (req, res) => {
+    console.log('inside of post to game and req.body is', req.body);
+    if(allGames[req.body.room].password == req.body.password) {
+      res.status(200).json(true);
+    } else {
+      res.status(501).json(false);
+    }
+  });
+  app.use(router);
   const server = app.listen(process.env.PORT || port || 5000, err => {
     if (err) throw(err);
     console.log('Server on:', port);
   });
+
   const io = require('socket.io')(server);
   let allGames = {};
+
+
   io.on('connection', socket => {
     let currRoom = null;
 
@@ -61,8 +74,9 @@ db.on('open', () => {
           private: data.private,
           numUsers: 0,
           gameMaster: null,
+          password: data.private ? data.roomPassword : null,
           connectedUsers: {},
-        }
+        };
         io.to(socket.id).emit('game created', data.room);
       }
     });
@@ -70,7 +84,10 @@ db.on('open', () => {
     let updateRoomsAndUsers = () => {
       let response = {};
       Object.keys(allGames).forEach(key => {
-        response[key] = allGames[key].numUsers;
+        response[key] = {};
+        response[key].numUsers = allGames[key].numUsers;
+        response[key].private = allGames[key].private;
+        response[key].maxUsers = allGames[key].maxUsers;
       });
       io.emit('update rooms and users', response);
     };
@@ -89,7 +106,7 @@ db.on('open', () => {
         io.to(socket.id).emit('initialize game', {
           maxUsers: allGames[room].maxUsers,
           private: allGames[room].private,
-          numUsers: allGames[room].numUsers
+          numUsers: allGames[room].numUsers,
         });
         socket.broadcast.to(room).emit('userCountUpdate', allGames[room].numUsers);
         currRoom = room;

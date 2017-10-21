@@ -47,47 +47,71 @@ db.on('open', () => {
     console.log('Server on:', port);
   });
   const io = require('socket.io')(server);
-  let rooms = {};
+  let allGames = {};
   io.on('connection', socket => {
     let currRoom = null;
 
+    socket.on('create new room', data => {
+      console.log('about to create a new room');
+      if(allGames.hasOwnProperty(data.room)) {
+        io.to(socket.id).emit('game already exists');
+      } else {
+        allGames[data.room] = {
+          maxUsers: data.maxUsers,
+          private: data.private,
+          numUsers: 0,
+          gameMaster: null,
+          connectedUsers: {},
+        }
+        io.to(socket.id).emit('game created', data.room);
+      }
+    });
+
     let updateRoomsAndUsers = () => {
       let response = {};
-      Object.keys(rooms).forEach(key => {
-        response[key] = rooms[key].numUsers;
+      Object.keys(allGames).forEach(key => {
+        response[key] = allGames[key].numUsers;
       });
       io.emit('update rooms and users', response);
     };
 
-    socket.on('join', (room) => {
-      socket.join(room);
-      if (rooms.hasOwnProperty(room)) {
-        rooms[room].connectedUsers[socket.id] = socket;
+    socket.on('join', room => {
+      if (allGames.hasOwnProperty(room) && allGames[room].numUsers >= allGames[room].maxUsers) {
+        io.to(socket.id).emit('this game is full');
       } else {
-        rooms[room] = {numUsers: 0, gameMaster: socket.id, connectedUsers: {}};
-        rooms[room].connectedUsers[socket.id] = socket;
-        io.to(socket.id).emit('gameMaster');
+        socket.join(room);
+        allGames[room].connectedUsers[socket.id] = socket;
+        allGames[room].numUsers++;
+        if (allGames[room].gameMaster == null) {
+          allGames[room].gameMaster = socket.id;
+          io.to(socket.id).emit('gameMaster');
+        }
+        io.to(socket.id).emit('initialize game', {
+          maxUsers: allGames[room].maxUsers,
+          private: allGames[room].private,
+          numUsers: allGames[room].numUsers
+        });
+        socket.broadcast.to(room).emit('userCountUpdate', allGames[room].numUsers);
+        currRoom = room;
+        updateRoomsAndUsers();
       }
-      rooms[room].numUsers++;
-      io.to(room).emit('userCountUpdate', rooms[room].numUsers);
-      currRoom = room;
-      updateRoomsAndUsers();
     });
 
     let leaveRoom = room => {
       socket.leave(room);
-      if(rooms.hasOwnProperty(room) && rooms[room].connectedUsers.hasOwnProperty(socket.id)) {
-        rooms[room].numUsers--;
-        socket.broadcast.to(room).emit('userCountUpdate', rooms[room].numUsers);
-        delete rooms[room].connectedUsers[socket.id];
-        if (rooms[room].gameMaster == socket.id) {
-          let UserKeys = Object.keys(rooms[room].connectedUsers);
-          rooms[room].gameMaster = UserKeys.length > 0 ? UserKeys[0] : null;
-          if (rooms[room].gameMaster != null) {
-            io.to(rooms[room].gameMaster).emit('gameMaster');
+      if(allGames.hasOwnProperty(room) && allGames[room].connectedUsers.hasOwnProperty(socket.id)) {
+        allGames[room].numUsers--;
+        socket.broadcast.to(room).emit('userCountUpdate', allGames[room].numUsers);
+        delete allGames[room].connectedUsers[socket.id];
+        if (allGames[room].gameMaster == socket.id) {
+          let UserKeys = Object.keys(allGames[room].connectedUsers);
+          allGames[room].gameMaster = UserKeys.length > 0 ? UserKeys[0] : null;
+          if (allGames[room].gameMaster != null) {
+            io.to(allGames[room].gameMaster).emit('gameMaster');
           } else {
-            delete rooms[room];
+            delete allGames[room];
             socket.broadcast.emit('delete room');
+            console.log('deleted room', room, 'and told everyone to update');
           }
         }
       }

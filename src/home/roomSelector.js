@@ -3,8 +3,9 @@ import PropTypes from 'prop-types';
 import Nav from './components/nav';
 import Modal from './components/modal';
 import styles from './roomSelector.scss';
-import { Link } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 import io from 'socket.io-client';
+
 const socket = io();
 
 class RoomSelector extends Component {
@@ -15,9 +16,11 @@ class RoomSelector extends Component {
       nextRoom: 1,
       showModal: false,
     };
+    socket.on('game created', newRoom => this.routeToNewRoom(newRoom));
     this.updateRoomsAndUsers = this.updateRoomsAndUsers.bind(this);
     this.getNextRoom = this.getNextRoom.bind(this);
     this.toggleModal = this.toggleModal.bind(this);
+    this.routeToNewRoom = this.routeToNewRoom.bind(this);
   }
 
   componentDidMount() {
@@ -52,6 +55,16 @@ class RoomSelector extends Component {
     }
   }
 
+  createGame(obj) {
+    console.log('about to create a new room');
+    socket.emit('create new room', obj);
+  }
+
+  routeToNewRoom(newRoom) {
+    console.log('pushing to new room', newRoom);
+    this.props.history.push('/room/' + newRoom);
+  }
+
   render() {
     return (
       <div className={`row ${styles.container}`}>
@@ -79,7 +92,7 @@ class RoomSelector extends Component {
                   Create new Game (Room #{this.state.nextRoom})
                 </div>
               </div>
-              <GameModal show={this.state.showModal} toggleModal={this.toggleModal} nextRoom={this.state.nextRoom}/>
+              <GameModal show={this.state.showModal} toggleModal={this.toggleModal} nextRoom={this.state.nextRoom} games={this.state.games} createGame={this.createGame}/>
             </div>
           </div>
         </div>
@@ -91,13 +104,16 @@ class RoomSelector extends Component {
 
 RoomSelector.propTypes = {
   handleAuth: PropTypes.object.isRequired,
+  history: PropTypes.shape({
+    push: PropTypes.func.isRequired,
+  }).isRequired,
 };
 
-export default RoomSelector;
+export default withRouter(RoomSelector);
 
 let GameContainer = props => {
   return (
-    <Link to={'/room/' + +props.game.room.slice(6)}>
+    <Link to={'/room/' + props.game.room}>
       <div className={`list-group-item ${styles.gamecontainer}`}>
         <div className={`${styles.item1}`}>{props.game.room}</div>
         <div className={`${styles.item2}`}><i className={`fa fa-users ${styles.icon}`} aria-hidden='true' />{props.game.number}</div>
@@ -116,7 +132,7 @@ class GameModal extends Component {
     this.state = {
       private: false,
       roomName: '',
-      roomNum: 1,
+      roomNum: 15,
       roomPassword: '',
       roomConfPassword: '',
       errMsgs: [],
@@ -136,7 +152,7 @@ class GameModal extends Component {
     let id = evt.target.id;
     if (id == 'modal-backdrop' || id == 'modal-close' || id == 'create-game') {
       console.log('evt fired in closeModal');
-      this.setState({private: false, errMsgs: []});
+      this.setState({private: false, errMsgs: [], roomName: '', roomNum: 50, roomPassword: '', roomConfPassword: ''});
       this.props.toggleModal(evt);
     }
   }
@@ -152,9 +168,14 @@ class GameModal extends Component {
       errMsgs.push('Password must be between 5 and 25 characters');
     }
 
-    let myRe = /^[a-z0-9]+$/i;
-    if (this.state.roomName === myRe.exec(this.state.roomName)) {
-      errMsgs.push('Room name may only contain alphanumeric characters');
+    let myRe = /^[a-z0-9_]+$/i;
+    if (!myRe.exec(this.state.roomName)) {
+      errMsgs.push('Room name may only contain alphanumeric characters and underscores');
+    }
+
+    console.log('roomName is', this.state.roomName, 'and games is', this.props.games, 'reduce is', this.props.games.reduce((curr, obj) => curr || (obj.room == this.state.roomName), false));
+    if (this.props.games.reduce((curr, obj) => curr || (obj.room === this.state.roomName), false)) {
+      errMsgs.push('Hmmm... it appears that room name has already been taken!');
     }
 
     if (this.state.roomName.length <= 4 || this.state.roomName.length >= 25) {
@@ -165,21 +186,26 @@ class GameModal extends Component {
       errMsgs.push('The maximum number of players must be between 1 and 100');
     }
 
-    if (errMsgs.length >= 0) {
+    if (errMsgs.length > 0) {
       this.setState({errMsgs: errMsgs});
     } else {
-      // send request to server 
-      
-      //route to new game url
+      this.setState({errMsgs: []});
+      let newGame = {};
+      newGame.maxUsers = +this.state.roomNum;
+      newGame.room = this.state.roomName;
+      newGame.private = this.state.private;
+      if (this.state.private) {
+        newGame.roomPassword = this.state.roomPassword;
+      }
+
+      this.props.createGame(newGame);
     }
   }
 
-  onChange(evt, ltr) {
-    console.log('evt in onChange is', evt);
-    console.log('ltr in onChange is', ltr);
+  onChange(evt) {
     evt.stopPropagation();
     let newState = {};
-    newState[evt.target.id] = 'n';
+    newState[evt.target.id] = evt.target.value;
     this.setState(newState);
   }
 
@@ -189,11 +215,11 @@ class GameModal extends Component {
         <form onSubmit={e => this.onSubmit(e)} className={`${styles.gamemodal}`}>
           <div className='form-group'>
             <label htmlFor='roomName'>Room Name</label>
-            <input type='text' className='form-control' id='roomName' aria-describedby='roomName' placeholder='Room Name' onChange={(evt, ltr) => this.onChange(evt, ltr)}/>
+            <input type='text' className='form-control' id='roomName' aria-describedby='roomName' placeholder='Room Name' onChange={evt => this.onChange(evt)}/>
           </div>
           <div className='form-group'>
             <label htmlFor='roomName'>Set Max Players:</label>
-            <input type='number' min='1' max='100' className={`${styles.roomnumber} form-control`} id='roomNum' aria-describedby='roomNumber' placeholder='50'/>
+            <input type='number' min='1' max='100' className={`form-control ${styles.specific} ${styles.roomnumber}`} id='roomNum' aria-describedby='roomNumber' defaultValue='15' onChange={evt => this.onChange(evt)}/>
           </div>
           <div className='form-check'>
             <label className='form-check-label'>
@@ -205,16 +231,16 @@ class GameModal extends Component {
             <div>
               <div className='form-group'>
                 <label htmlFor='roomPassword'>Password</label>
-                <input type='password' className='form-control' id='roomPassword' placeholder='Password'/>
+                <input type='password' className='form-control' id='roomPassword' placeholder='Password' onChange={evt => this.onChange(evt)}/>
               </div>
               <div className='form-group disabled'>
                 <label htmlFor='roomConfPassword'>Confirm Password</label>
-                <input type='password' className='form-control' id='roomConfPassword' placeholder='Confirm Password'/>
+                <input type='password' className='form-control' id='roomConfPassword' placeholder='Confirm Password' onChange={evt => this.onChange(evt)}/>
               </div>
             </div>
           )}
           <div className={`${styles.footer}`}>
-            <button type='submit' className={`${styles.width} btn btn-primary`}>
+            <button type='submit' className={`${styles.width} btn btn-primary`} onClick={this.onSubmit}>
               Create Game!
             </button>
             <button id='modal-close' className={`${styles.width} btn btn-danger`}>Cancel</button>
@@ -238,4 +264,6 @@ GameModal.propTypes = {
   show: PropTypes.bool.isRequired,
   toggleModal: PropTypes.func.isRequired,
   nextRoom: PropTypes.number.isRequired,
+  games: PropTypes.array.isRequired,
+  createGame: PropTypes.func.isRequired,
 };

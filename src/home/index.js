@@ -10,6 +10,9 @@ class Home extends Component {
   constructor() {
     super();
     this.state = {
+      maxUsers: 2,
+      showModal: false,
+      private: false,
       gameMaster: false,
       won: null,
       currentBall: null,
@@ -65,6 +68,8 @@ class Home extends Component {
     socket.on('gameMaster', () => this.setGameMaster(true));
     socket.on('userCountUpdate', num => this.setNumUsers(num));
     socket.on('You all lost', () => this.lostGame());
+    socket.on('initialize game', data => this.initialize(data));
+    socket.on('this game is full', () => this.toggleModal());
     this.clickSquare = this.clickSquare.bind(this);
     this.checkBingo = this.checkBingo.bind(this);
     this.getNewBoard = this.getNewBoard.bind(this);
@@ -74,24 +79,35 @@ class Home extends Component {
     this.setGameMaster = this.setGameMaster.bind(this);
     this.setNumUsers = this.setNumUsers.bind(this);
     this.lostGame = this.lostGame.bind(this);
+    this.toggleModal = this.toggleModal.bind(this);
   }
 
   componentDidMount() {
     let urlArr = window.location.href.split('/');
-    let roomNum = 'Room #' + urlArr[urlArr.length - 1];
-    this.setState({roomNum: roomNum});
-    socket.emit('join', roomNum);
+    let roomName = urlArr[urlArr.length - 1];
+    this.setState({roomName: roomName});
+    socket.emit('join', roomName);
     let self = this;
     window.addEventListener('beforeunload', self.reconnectSocket);
   }
 
   componentWillUnmount() {
-    socket.emit('leave', this.state.roomNum);
+    socket.emit('leave', this.state.roomName);
     window.removeEventListener('beforeunload', this.reconnectSocket);
   }
 
   reconnectSocket() {
-    socket.emit('leave', this.state.roomNum);
+    socket.emit('leave', this.state.roomName);
+  }
+
+  initialize(data) {
+    console.log('initializing game and data is', data);
+    this.setState({maxUsers: data.maxUsers, private: data.private, numUsers: data.numUsers});
+  }
+
+  toggleModal() {
+    console.log('this game is full');
+    this.setState({showModal: true});
   }
 
   setGameMaster(bool) {
@@ -138,7 +154,7 @@ class Home extends Component {
     if (num >= 61 && num <= 80) letter = 'g';
     if (num >= 81 && num <= 100) letter = 'o';
     let data = {letter: letter, number: num};
-    socket.emit('draw lottery ball', data, this.state.roomNum);
+    socket.emit('draw lottery ball', data, this.state.roomName);
   }
 
   clickSquare(evt) {
@@ -164,7 +180,7 @@ class Home extends Component {
   }
 
   resetAllBoards() {
-    socket.emit('reset all boards', this.state.roomNum);
+    socket.emit('reset all boards', this.state.roomName);
   }
   
   resetBoard() {
@@ -221,7 +237,7 @@ class Home extends Component {
     if (diag1 == 5 || diag2 == 5) answer = true;
     if (answer) {
       this.setState({won: answer, invalidAttempt: false});
-      socket.emit('I won, suckers', this.state.roomNum);
+      socket.emit('I won, suckers', this.state.roomName);
     } else {
       this.setState({invalidAttempt: true});
       let cb = () => this.setState({invalidAttempt: false});

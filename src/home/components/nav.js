@@ -5,9 +5,11 @@ import { Link } from 'react-router-dom';
 
 const Nav = props => {
   let url = window.location.href.split('/');
+  let theme = styles[props.theme];
+
   return (
     <div>
-      <div className={`${styles.container}`}>
+      <div className={`${styles.container} ${theme}`}>
         <div className={`${styles.home} ${styles.nav}`}>
           {url[url.length - 1] != '' ?
             <Link to='/'><span className={styles.route}>Home</span></Link> :
@@ -32,6 +34,7 @@ const Nav = props => {
 
 Nav.propTypes = {
   handleAuth: PropTypes.object.isRequired,
+  theme: PropTypes.string.isRequired,
 };
 
 const NavItem = (props) => {

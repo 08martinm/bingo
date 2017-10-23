@@ -4,7 +4,16 @@
   background-color: #001f3f;
   min-height: 4.5em;
   width: 100%;
+
+  &.theme1 {
+    background-color: rgb(255, 0, 0);
+  }
+
+  &.theme2 {
+    background-color: rgb(0, 255, 0);
+  }
 }
+
 
 .nav {
   color: #fffffa;

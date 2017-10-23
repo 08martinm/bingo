@@ -28,10 +28,14 @@ let Board = props => (
               <button className='btn btn-success' onClick={props.drawLotteryBall}>Draw Ball</button> 
               <button className='btn btn-primary btn-sm' onClick={props.newBoard}>New Board</button>
               <button className='btn btn-danger btn-sm' onClick={props.resetBoard}>New game</button>
+              <button className={`${styles.btnspacing} center-block btn btn-primary btn-sm`} onClick={props.toggleTheme}>Toggle Theme</button>
             </div>
           </div>
         ):
-        <button className={`${styles.btnspacing} center-block btn btn-primary btn-sm`} onClick={props.newBoard}>New Board</button>
+        <div>
+          <button className={`${styles.btnspacing} center-block btn btn-primary btn-sm`} onClick={props.newBoard}>New Board</button>
+          <button className={`${styles.btnspacing} center-block btn btn-primary btn-sm`} onClick={props.toggleTheme}>Toggle Theme</button>
+        </div>
     }
 
 
@@ -77,6 +81,7 @@ Board.propTypes = {
   onClick: PropTypes.func.isRequired,
   checkBingo: PropTypes.func.isRequired,
   resetBoard: PropTypes.func.isRequired,
+  toggleTheme: PropTypes.func.isRequired,
 };
 
 export default Board;

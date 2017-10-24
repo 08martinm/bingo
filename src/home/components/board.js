@@ -26,15 +26,20 @@ let Board = props => (
             <br />
             <div className={`${styles.flexify} text-center`}>
               <button className='btn btn-success' onClick={props.drawLotteryBall}>Draw Ball</button> 
-              <button className='btn btn-primary btn-sm' onClick={props.newBoard}>New Board</button>
+              <button className='btn btn-primary btn-sm' onClick={() => props.newBoard()}>New Board</button>
+              <button className='btn btn-primary btn-sm' style={{backgroundColor: props.bgColor}} onClick={props.changeTheme}>Change Theme</button>
               <button className='btn btn-danger btn-sm' onClick={props.resetBoard}>New game</button>
-              <button className={`${styles.btnspacing} center-block btn btn-primary btn-sm`} onClick={props.toggleTheme}>Toggle Theme</button>
             </div>
           </div>
-        ):
-        <div>
-          <button className={`${styles.btnspacing} center-block btn btn-primary btn-sm`} onClick={props.newBoard}>New Board</button>
-          <button className={`${styles.btnspacing} center-block btn btn-primary btn-sm`} onClick={props.toggleTheme}>Toggle Theme</button>
+        ) :
+        <div className='text-center alert alert-info'>
+          You are a <b>Participant</b>!<br />
+          Check those boxes quickly and call Bingo as soon as you can!<br />
+          <br />
+          <div className={`${styles.flexify} text-center`}>
+            <button className='center-block btn btn-primary btn-sm' onClick={() => props.newBoard()}>New Board</button>
+            <button className='center-block btn btn-primary btn-sm' style={{backgroundColor: props.bgColor}} onClick={props.changeTheme}>Change Theme</button>
+          </div>
         </div>
     }
 
@@ -81,7 +86,8 @@ Board.propTypes = {
   onClick: PropTypes.func.isRequired,
   checkBingo: PropTypes.func.isRequired,
   resetBoard: PropTypes.func.isRequired,
-  toggleTheme: PropTypes.func.isRequired,
+  changeTheme: PropTypes.func.isRequired,
+  bgColor: PropTypes.string.isRequired,
 };
 
 export default Board;

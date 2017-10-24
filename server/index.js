@@ -44,12 +44,13 @@ db.on('open', () => {
   app.use(routes);
   app.use(express.static(__dirname + '/../public'));
   router.post('/game', (req, res) => {
-    console.log('inside of post to game and req.body is', req.body);
-    if(allGames[req.body.room].password == req.body.password) {
-      res.status(200).json(true);
-    } else {
-      res.status(501).json(false);
-    }
+    let room = req.body.room;
+    let pw = req.body.password;
+    let errMsgs = [];
+    if (allGames[room].password != pw) errMsgs.push('Oops! Incorrect password.');
+    if (allGames[room].numUsers == allGames[room].maxUsers) errMsgs.push('This game is full!');
+    if (errMsgs.length > 0) return res.status(400).json({error: errMsgs});
+    return res.json(true);
   });
   app.use(router);
   const server = app.listen(process.env.PORT || port || 5000, err => {
@@ -61,7 +62,7 @@ db.on('open', () => {
   let allGames = {};
 
 
-  io.on('connection', socket => {
+  io.on('connection', socket =>  {
     let currRoom = null;
 
     socket.on('create new room', data => {
@@ -74,6 +75,7 @@ db.on('open', () => {
           private: data.private,
           numUsers: 0,
           gameMaster: null,
+          drawnBalls: [],
           password: data.private ? data.roomPassword : null,
           connectedUsers: {},
         };
@@ -107,6 +109,7 @@ db.on('open', () => {
           maxUsers: allGames[room].maxUsers,
           private: allGames[room].private,
           numUsers: allGames[room].numUsers,
+          drawnBalls: allGames[room].drawnBalls,
         });
         socket.broadcast.to(room).emit('userCountUpdate', allGames[room].numUsers);
         currRoom = room;
@@ -139,7 +142,10 @@ db.on('open', () => {
     socket.on('disconnect', () => leaveRoom(currRoom));
     socket.on('I won, suckers', room => socket.broadcast.to(room).emit('You all lost'));
     socket.on('reset all boards', room => io.to(room).emit('resetting boards'));
-    socket.on('draw lottery ball', (data, room) => io.to(room).emit('new lottery ball', data));
+    socket.on('draw lottery ball', (data, room) => {
+      allGames[room].drawnBalls.push(data.number);
+      io.to(room).emit('new lottery ball', data);
+    });
     socket.on('get rooms and users', () => updateRoomsAndUsers());
   });
 });

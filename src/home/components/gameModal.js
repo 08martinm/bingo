@@ -20,7 +20,6 @@ class GameModal extends Component {
   }
 
   togglePrivate() {
-    console.log('evt fired in togglePrivate');
     this.setState({private: !this.state.private});
   }
 
@@ -28,7 +27,6 @@ class GameModal extends Component {
     evt.stopPropagation();
     let id = evt.target.id;
     if (id == 'modal-backdrop' || id == 'modal-close' || id == 'create-game') {
-      console.log('evt fired in closeModal');
       this.setState({private: false, errMsgs: [], roomName: '', roomNum: 50, roomPassword: '', roomConfPassword: ''});
       this.props.toggleModal(evt);
     }
@@ -50,7 +48,6 @@ class GameModal extends Component {
       errMsgs.push('Room name may only contain alphanumeric characters and underscores');
     }
 
-    console.log('roomName is', this.state.roomName, 'and games is', this.props.games, 'reduce is', this.props.games.reduce((curr, obj) => curr || (obj.room == this.state.roomName), false));
     if (this.props.games.reduce((curr, obj) => curr || (obj.room === this.state.roomName), false)) {
       errMsgs.push('Hmmm... it appears that room name has already been taken!');
     }

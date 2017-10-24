@@ -3,17 +3,18 @@ import PropTypes from 'prop-types';
 import Nav from './components/nav';
 import Board from './components/board';
 import ScoreKeeping from './components/scoreKeeping';
+import Modal from './components/modal';
 import io from 'socket.io-client';
 import axios from 'axios';
 const socket = io();
-
 
 class Home extends Component {
   constructor() {
     super();
     this.state = {
+      buildingBoard: false,
+      bgColor: 'rgb(100, 100, 100)',
       maxUsers: 2,
-      theme: 'theme1',
       showModal: false,
       private: false,
       gameMaster: false,
@@ -83,7 +84,8 @@ class Home extends Component {
     this.setNumUsers = this.setNumUsers.bind(this);
     this.lostGame = this.lostGame.bind(this);
     this.toggleModal = this.toggleModal.bind(this);
-    this.toggleTheme = this.toggleTheme.bind(this);
+    this.changeTheme = this.changeTheme.bind(this);
+    this.newBoardCb = this.newBoardCb.bind(this);
   }
 
   componentDidMount() {
@@ -93,6 +95,7 @@ class Home extends Component {
     socket.emit('join', roomName);
     let self = this;
     window.addEventListener('beforeunload', self.reconnectSocket);
+    this.changeTheme();
   }
 
   componentWillUnmount() {
@@ -104,14 +107,11 @@ class Home extends Component {
     socket.emit('leave', this.state.roomName);
   }
 
-  toggleTheme() {
-    let newTheme = '';
-    if (this.state.theme === 'theme1') {
-      newTheme = 'theme2';
-    } else {
-      newTheme = 'theme1';
-    }
-    this.setState({theme: newTheme});
+  changeTheme() {
+    let r = Math.ceil(Math.random() * 255);
+    let g = Math.ceil(Math.random() * 255);
+    let b = Math.ceil(Math.random() * 255);
+    this.setState({bgColor: 'rgb(' + r + ',' + g + ',' + b + ')'});
   }
 
   initialize(data) {
@@ -120,10 +120,10 @@ class Home extends Component {
     let newArr = [];
     for (let i = 0; i < data.drawnBalls.length; i++) {
       if (data.drawnBalls[i] <= 20) letter = 'b';
-      if (data.drawnBalls[i] <= 40) letter = 'i';
-      if (data.drawnBalls[i] <= 60) letter = 'n';
-      if (data.drawnBalls[i] <= 80) letter = 'g';
-      if (data.drawnBalls[i] <= 100) letter = 'o';
+      else if (data.drawnBalls[i] <= 40) letter = 'i';
+      else if (data.drawnBalls[i] <= 60) letter = 'n';
+      else if (data.drawnBalls[i] <= 80) letter = 'g';
+      else if (data.drawnBalls[i] <= 100) letter = 'o';
 
       let ball = {
         letter: letter,
@@ -282,36 +282,30 @@ class Home extends Component {
 
   }
 
-  getNewBoard(ctr, arr, cb) {
-    if (!arr) arr = [];
-    if (!ctr) ctr = 1;
+  getNewBoard(arr, cb) {
+    if (!arr) {
+      console.log('initial call to getNewBoard');
+      arr = [];
+      this.setState({buildingBoard: true});
+    }
     let self = this;
+    let min = arr.length == 0 ? 1 : Math.floor(arr.length / 5) * 20 + 1; 
+    let max = min + 19;
 
-    axios.get('https://rng.com/api/v1/rand?start=0,end=100')
+    axios.get('https://www.random.org/integers/?num=1&min=' + min + '&max=' + max + '&col=1&base=10&format=plain&rnd=new')
       .then(obj => {
-        arr.push(obj.number);
-        if (ctr <= 25) {
-          self.getNewBoard(ctr++, arr);
-        } else {
-          cb(arr);
+        console.log('random.org obj.data is', obj.data, 'arguments are', arguments);
+        if (!arr.includes(obj.data)) {
+          arr.push(obj.data);
+          if (arr.length == 25) return cb(arr);
         }
+        self.getNewBoard(arr, self.newBoardCb);
       })
-      .catch(error => {
-        console.log(error);
-      });
+      .catch(error => console.log(error));
+  }
 
-    // for (let j = 1; j <= 5; j++) {
-    //   let setOfNums = [];
-    //   let beg = (j-1) * 20 + 1;
-    //   for (let i = beg; i <= (beg + 19); i++) setOfNums.push(i);
-      
-    //   for (let i = 1; i <= 5; i++) {
-    //     let index = Math.floor(Math.random() * setOfNums.length);
-    //     newNums.push(setOfNums[index]);
-    //     setOfNums.splice(index, 1);
-    //   }
-    // }
-
+  newBoardCb(newNums) {
+    this.setState({buildingBoard: false});
     let newBoard = {};
     'bingo'.split('').forEach((letter, charNum) => {
       newBoard[letter] = {};
@@ -330,13 +324,22 @@ class Home extends Component {
   render() {
     return (
       <div className='row'>
-        <Nav handleAuth={this.props.handleAuth} theme={this.state.theme}/>
-        <ScoreKeeping val={'1'} drawn={this.state.drawn} current={this.state.currentBall} numUsers={this.state.numUsers} theme={this.state.theme}/>
+        <Nav handleAuth={this.props.handleAuth} bgColor={this.state.bgColor}/>
+        <ScoreKeeping val={'1'} drawn={this.state.drawn} current={this.state.currentBall} numUsers={this.state.numUsers} bgColor={this.state.bgColor}/>
         <Board board={this.state.board} onClick={this.clickSquare} checkBingo={this.checkBingo}
           won={this.state.won} gameMaster={this.state.gameMaster} newBoard={this.getNewBoard} invalidAttempt={this.state.invalidAttempt}
           handleAuth={this.props.handleAuth} drawLotteryBall={this.drawLotteryBall} resetBoard={this.resetAllBoards}
-          theme={this.state.theme}
+          bgColor={this.state.bgColor} changeTheme={this.changeTheme}
         />
+        <Modal show={this.state.buildingBoard}>
+          <div className='text-center'>
+            <h3>
+              Building new board...<br/>
+              ...hold on tight!
+            </h3>
+            <i className='center-block fa fa-spinner fa-pulse fa-3x fa-fw'></i>
+          </div>
+        </Modal>
       </div>
     );
   }

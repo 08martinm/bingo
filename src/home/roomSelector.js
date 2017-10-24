@@ -84,7 +84,6 @@ class RoomSelector extends Component {
 
   checkIfPrivate(evt) {
     let id = evt.currentTarget.id;
-    console.log('id clicked from checkIfPrivate is', id, evt.target, evt.currentTarget);
     let game = this.state.games.find(game => game.room === id);
     if (game.private) {
       this.setState({enterPasswordModal: true, roomName: game.room});
@@ -94,7 +93,6 @@ class RoomSelector extends Component {
   }
 
   checkPassword(obj) {
-    console.log('obj passed to checkPassword is', obj);
     axios.post('/game', {
       password: obj.password,
       room: obj.room,

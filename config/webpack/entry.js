@@ -6,6 +6,6 @@ exports.entry = {
   array: true,
   name: 'entry',
   data: env ? 
-    ['bootstrap-loader', 'react-hot-loader/patch', entryPath] :
+    ['bootstrap-loader', 'react-hot-loader/patch', 'webpack-hot-middleware/client', entryPath] :
     ['bootstrap-loader', entryPath],
 };

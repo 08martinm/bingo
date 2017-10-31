@@ -8,10 +8,13 @@
   "scripts": {
     "start": "webpack && node server/index.js",
     "start:dev": "webpack-dev-server",
-    "start:serv": "webpack -p && nodemon server/index.js",
+    "start:serv": "node server/index.js",
     "lint:js": "eslint app/ webpack.*.js --cache"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "clean-webpack-plugin": "^0.1.17",
+    "webpack-dev-middleware": "^1.12.0"
+  },
   "dependencies": {
     "autoprefixer": "^7.1.2",
     "axios": "^0.16.2",
@@ -68,6 +71,7 @@
     "url-loader": "^0.5.9",
     "webpack": "^3.4.1",
     "webpack-dev-server": "^2.5.0",
+    "webpack-hot-middleware": "^2.20.0",
     "webpack-merge": "^4.1.0"
   }
 }

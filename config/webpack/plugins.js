@@ -4,8 +4,9 @@ const webpack = require('webpack');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-const HMR = new webpack.HotModuleReplacementPlugin();
 const NamedModules = new webpack.NamedModulesPlugin();
+const HMR = new webpack.HotModuleReplacementPlugin();
+const NoEmit = new webpack.NoEmitOnErrorsPlugin();
 const ExtractText = new ExtractTextPlugin({filename: '[name].[contenthash].css'});
 
 const HTMLWebpack = new HTMLWebpackPlugin({
@@ -28,6 +29,6 @@ exports.plugins = {
   array: true,
   name: 'plugins',
   data: env ? 
-    [HTMLWebpack, LoaderOptions, HMR, NamedModules] :
+    [HTMLWebpack, LoaderOptions, NamedModules, HMR, NoEmit] :
     [HTMLWebpack, LoaderOptions, ExtractText],
 };

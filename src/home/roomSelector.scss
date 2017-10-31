@@ -3,9 +3,15 @@
 }
 
 .gamecontainer {
+  color: #337ab7;
   margin: 0 auto;
   padding: auto 2em;
   width: 50%;
+}
+
+.gamecontainer:hover {
+  color: darken(#337ab7, 22.5%);
+  cursor: pointer;
 }
 
 .pic {
@@ -32,19 +38,25 @@
 .item1 {
   display: inline-block;
   text-align: center;
-  width: 80%;
+  width: 60%;
 }
 
 .item2 {
   display: inline-block;
   text-align: center;
-  width: 15%;
+  width: 10%;
 }
 
 .item3 {
   display: inline-block;
   text-align: center;
-  width: 5%;
+  width: 15%;
+}
+
+.item4 {
+  display: inline-block;
+  text-align: center;
+  width: 15%;
 }
 
 .icon {padding-right: 0.4em;}
@@ -63,37 +75,4 @@
 
 .title {
   margin: 0 0 1em;
-}
-
-.footer {
-  align-content: center;
-  display: flex;
-  height: 2em;
-  justify-content: space-evenly;
-  margin: 1.5em 0 2em;
-}
-
-.width {
-  height: 2.5em;
-  width: 150px;
-}
-
-.gamemodal {
-  color: #000;
-  text-align: left;
-}
-
-.checkbox {
-  margin: 1em;
-}
-
-.checkboxtext {
-  display: inline-block;
-  margin: 0 1em 1em 0;
-}
-
-.roomnumber {
-  display: inline-block;
-  margin: 0 0 0 1em;
-  width: 6em;
 }

@@ -17,12 +17,7 @@
 .login {right: 1em;}
 .home {left: 1em;}
 .route {text-decoration: none;}
-
-.route:hover {
-  background-color: #d3d0cb;
-  text-decoration: none;
-}
-
+.route:hover {text-decoration: none;}
 
 .text-container {
   display: inline-block;
@@ -34,4 +29,6 @@
 .title {
   color: #fffffa;
   font-family: 'Volkhov', serif;
+  &.dark {color: rgba(0,0,0,0.6);}
+  &.white {color: rgba(255,255,255,0.6);}
 }

@@ -13,13 +13,13 @@ const ScoreKeeping = props => {
             'You are currently the only player... Your chances of winning are pretty good ;)'
         }
       </div>
-      <div className={`${styles.newnumber}`}>
+      <div className={`${styles.newnumber}`} style={{backgroundColor: props.bgColor}}>
         <h3 className='text-center'>The new ball is:</h3>
         <div className={`${styles.poolball} ${className}`}>
           <span className={styles.poolballnum}>{props.current ? props.current.toUpperCase() : ''}</span>
         </div>
       </div>
-      <div className={`${styles.tracker} text-center`}>
+      <div className={`${styles.tracker} text-center`} style={{backgroundColor: props.bgColor}}>
         <div className={`${styles.trackertitle}`}>
           <h3>Numbers already drawn:</h3>
         </div>
@@ -49,6 +49,7 @@ ScoreKeeping.propTypes = {
   current: PropTypes.string,
   drawn: PropTypes.object.isRequired,
   val: PropTypes.string.isRequired,
+  bgColor: PropTypes.string.isRequired,
 };
 
 export default ScoreKeeping;

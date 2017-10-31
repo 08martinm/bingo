@@ -3,13 +3,20 @@ import PropTypes from 'prop-types';
 import Nav from './components/nav';
 import Board from './components/board';
 import ScoreKeeping from './components/scoreKeeping';
+import Modal from './components/modal';
 import io from 'socket.io-client';
+import axios from 'axios';
 const socket = io();
 
 class Home extends Component {
   constructor() {
     super();
     this.state = {
+      buildingBoard: false,
+      bgColor: 'rgb(100, 100, 100)',
+      maxUsers: 2,
+      showModal: false,
+      private: false,
       gameMaster: false,
       won: null,
       currentBall: null,
@@ -65,6 +72,8 @@ class Home extends Component {
     socket.on('gameMaster', () => this.setGameMaster(true));
     socket.on('userCountUpdate', num => this.setNumUsers(num));
     socket.on('You all lost', () => this.lostGame());
+    socket.on('initialize game', data => this.initialize(data));
+    socket.on('this game is full', () => this.toggleModal());
     this.clickSquare = this.clickSquare.bind(this);
     this.checkBingo = this.checkBingo.bind(this);
     this.getNewBoard = this.getNewBoard.bind(this);
@@ -74,24 +83,66 @@ class Home extends Component {
     this.setGameMaster = this.setGameMaster.bind(this);
     this.setNumUsers = this.setNumUsers.bind(this);
     this.lostGame = this.lostGame.bind(this);
+    this.toggleModal = this.toggleModal.bind(this);
+    this.changeTheme = this.changeTheme.bind(this);
+    this.newBoardCb = this.newBoardCb.bind(this);
   }
 
   componentDidMount() {
     let urlArr = window.location.href.split('/');
-    let roomNum = 'Room #' + urlArr[urlArr.length - 1];
-    this.setState({roomNum: roomNum});
-    socket.emit('join', roomNum);
+    let roomName = urlArr[urlArr.length - 1];
+    this.setState({roomName: roomName});
+    socket.emit('join', roomName);
     let self = this;
     window.addEventListener('beforeunload', self.reconnectSocket);
+    this.changeTheme();
   }
 
   componentWillUnmount() {
-    socket.emit('leave', this.state.roomNum);
+    socket.emit('leave', this.state.roomName);
     window.removeEventListener('beforeunload', this.reconnectSocket);
   }
 
   reconnectSocket() {
-    socket.emit('leave', this.state.roomNum);
+    socket.emit('leave', this.state.roomName);
+  }
+
+  changeTheme() {
+    let r = Math.ceil(Math.random() * 255);
+    let g = Math.ceil(Math.random() * 255);
+    let b = Math.ceil(Math.random() * 255);
+    this.setState({bgColor: 'rgb(' + r + ',' + g + ',' + b + ')'});
+  }
+
+  initialize(data) {
+    console.log('initializing game and data is', data);
+    let letter = '';
+    let newArr = [];
+    for (let i = 0; i < data.drawnBalls.length; i++) {
+      if (data.drawnBalls[i] <= 20) letter = 'b';
+      else if (data.drawnBalls[i] <= 40) letter = 'i';
+      else if (data.drawnBalls[i] <= 60) letter = 'n';
+      else if (data.drawnBalls[i] <= 80) letter = 'g';
+      else if (data.drawnBalls[i] <= 100) letter = 'o';
+
+      let ball = {
+        letter: letter,
+        number: data.drawnBalls[i],
+      };
+
+      newArr.push(ball);
+    }
+    
+    newArr.forEach(obj => {
+      this.updateFromSockets(obj);
+    });
+
+    this.setState({maxUsers: data.maxUsers, private: data.private, numUsers: data.numUsers});
+  }
+
+  toggleModal() {
+    console.log('this game is full');
+    this.setState({showModal: true});
   }
 
   setGameMaster(bool) {
@@ -138,7 +189,7 @@ class Home extends Component {
     if (num >= 61 && num <= 80) letter = 'g';
     if (num >= 81 && num <= 100) letter = 'o';
     let data = {letter: letter, number: num};
-    socket.emit('draw lottery ball', data, this.state.roomNum);
+    socket.emit('draw lottery ball', data, this.state.roomName);
   }
 
   clickSquare(evt) {
@@ -164,7 +215,7 @@ class Home extends Component {
   }
 
   resetAllBoards() {
-    socket.emit('reset all boards', this.state.roomNum);
+    socket.emit('reset all boards', this.state.roomName);
   }
   
   resetBoard() {
@@ -221,7 +272,7 @@ class Home extends Component {
     if (diag1 == 5 || diag2 == 5) answer = true;
     if (answer) {
       this.setState({won: answer, invalidAttempt: false});
-      socket.emit('I won, suckers', this.state.roomNum);
+      socket.emit('I won, suckers', this.state.roomName);
     } else {
       this.setState({invalidAttempt: true});
       let cb = () => this.setState({invalidAttempt: false});
@@ -231,21 +282,30 @@ class Home extends Component {
 
   }
 
-  getNewBoard() {
-    let newNums = [];
-
-    for (let j = 1; j <= 5; j++) {
-      let setOfNums = [];
-      let beg = (j-1) * 20 + 1;
-      for (let i = beg; i <= (beg + 19); i++) setOfNums.push(i);
-      
-      for (let i = 1; i <= 5; i++) {
-        let index = Math.floor(Math.random() * setOfNums.length);
-        newNums.push(setOfNums[index]);
-        setOfNums.splice(index, 1);
-      }
+  getNewBoard(arr, cb) {
+    if (!arr) {
+      console.log('initial call to getNewBoard');
+      arr = [];
+      this.setState({buildingBoard: true});
     }
+    let self = this;
+    let min = arr.length == 0 ? 1 : Math.floor(arr.length / 5) * 20 + 1; 
+    let max = min + 19;
 
+    axios.get('https://www.random.org/integers/?num=1&min=' + min + '&max=' + max + '&col=1&base=10&format=plain&rnd=new')
+      .then(obj => {
+        console.log('random.org obj.data is', obj.data, 'arguments are', arguments);
+        if (!arr.includes(obj.data)) {
+          arr.push(obj.data);
+          if (arr.length == 25) return cb(arr);
+        }
+        self.getNewBoard(arr, self.newBoardCb);
+      })
+      .catch(error => console.log(error));
+  }
+
+  newBoardCb(newNums) {
+    this.setState({buildingBoard: false});
     let newBoard = {};
     'bingo'.split('').forEach((letter, charNum) => {
       newBoard[letter] = {};
@@ -264,12 +324,22 @@ class Home extends Component {
   render() {
     return (
       <div className='row'>
-        <Nav handleAuth={this.props.handleAuth} />
-        <ScoreKeeping val={'1'} drawn={this.state.drawn} current={this.state.currentBall} numUsers={this.state.numUsers}/>
+        <Nav handleAuth={this.props.handleAuth} bgColor={this.state.bgColor}/>
+        <ScoreKeeping val={'1'} drawn={this.state.drawn} current={this.state.currentBall} numUsers={this.state.numUsers} bgColor={this.state.bgColor}/>
         <Board board={this.state.board} onClick={this.clickSquare} checkBingo={this.checkBingo}
           won={this.state.won} gameMaster={this.state.gameMaster} newBoard={this.getNewBoard} invalidAttempt={this.state.invalidAttempt}
           handleAuth={this.props.handleAuth} drawLotteryBall={this.drawLotteryBall} resetBoard={this.resetAllBoards}
+          bgColor={this.state.bgColor} changeTheme={this.changeTheme}
         />
+        <Modal show={this.state.buildingBoard}>
+          <div className='text-center'>
+            <h3>
+              Building new board...<br/>
+              ...hold on tight!
+            </h3>
+            <i className='center-block fa fa-spinner fa-pulse fa-3x fa-fw'></i>
+          </div>
+        </Modal>
       </div>
     );
   }

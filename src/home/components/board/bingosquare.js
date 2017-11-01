@@ -12,10 +12,10 @@ let BingoSquare = props => {
 };
 
 BingoSquare.propTypes = {
-  selected: PropTypes.bool.isRequired,
   letter: PropTypes.string.isRequired,
-  val: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
   onClick: PropTypes.func.isRequired,
+  selected: PropTypes.bool.isRequired,
+  val: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
 };
 
 export default BingoSquare;

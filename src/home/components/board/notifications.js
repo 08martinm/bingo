@@ -31,8 +31,8 @@ let Notifications = props => (
 );
 
 Notifications.propTypes = {
-  won: PropTypes.bool,
   invalidAttempt: PropTypes.bool,
+  won: PropTypes.bool,
 };
 
 export default Notifications;

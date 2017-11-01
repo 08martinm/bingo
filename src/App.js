@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {BrowserRouter as Router, Route, Switch, Redirect} from 'react-router-dom';
 import Proptypes from 'prop-types';
-import RoomSelector from './home/roomSelector';
+import RoomSelector from './home/components/roomSelector';
 import Home from './home';
 import Verify from './pages/login/verify';
 import Login from './pages/login';

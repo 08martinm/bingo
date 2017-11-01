@@ -16,18 +16,18 @@ let Board = props => (
 );
 
 Board.propTypes = {
-  invalidAttempt: PropTypes.bool.isRequired,
-  drawLotteryBall: PropTypes.func.isRequired,
-  handleAuth: PropTypes.object.isRequired,
-  newBoard: PropTypes.func.isRequired,
-  won: PropTypes.bool,
-  gameMaster: PropTypes.bool.isRequired,
-  board: PropTypes.object.isRequired,
-  onClick: PropTypes.func.isRequired,
-  checkBingo: PropTypes.func.isRequired,
-  resetBoard: PropTypes.func.isRequired,
-  changeTheme: PropTypes.func.isRequired,
   bgColor: PropTypes.string.isRequired,
+  board: PropTypes.object.isRequired,
+  changeTheme: PropTypes.func.isRequired,
+  checkBingo: PropTypes.func.isRequired,
+  drawLotteryBall: PropTypes.func.isRequired,
+  gameMaster: PropTypes.bool.isRequired,
+  handleAuth: PropTypes.object.isRequired,
+  invalidAttempt: PropTypes.bool.isRequired,
+  newBoard: PropTypes.func.isRequired,
+  onClick: PropTypes.func.isRequired,
+  resetBoard: PropTypes.func.isRequired,
+  won: PropTypes.bool,
 };
 
 export default Board;

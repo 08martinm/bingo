@@ -1,9 +1,9 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import Nav from './components/nav';
-import GameModal from './components/gameModal';
-import PasswordModal from './components/passwordModal';
-import styles from './roomSelector.scss';
+import Nav from './nav';
+import Jumbotron from './roomSelector/jumbotron';
+import GameList from './roomSelector/gamelist';
+import styles from './roomSelector/roomSelector.scss';
 import { withRouter } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
@@ -109,35 +109,19 @@ class RoomSelector extends Component {
     return (
       <div className={`row ${styles.container}`}>
         <Nav handleAuth={this.props.handleAuth} />
-
-        <div className={`jumbotron text-center ${styles.pic}`}>
-          <div className={`${styles.jumbotrontext}`}>
-            <h1 className='display-3'>Hello, friend!</h1>
-            <div className={`${styles.line}`} />
-            <p className='lead'>
-              Welcome to BingoByMatthew.<br/>
-              Start by clicking on a game below,<br/>
-              or creating a new one.
-            </p>
-          </div>
-        </div>
-
-        <div className={`${styles.gamelist} text-center`}>
-          <h3 className={styles.title}>Games available</h3>
-          <div className='list-group'>
-            {this.state.games.map((game, key) => <GameContainer key={key} game={game} checkIfPrivate={this.checkIfPrivate}/>)}
-            <div className={`list-group-item active ${styles.gamecontainer}`}>
-              <div onClick={e => this.toggleModal(e)}>
-                <div id='create-game' className={`${styles.create}`}>
-                  Create new Game (Room #{this.state.nextRoom})
-                </div>
-              </div>
-              <GameModal show={this.state.createGameModal} toggleModal={this.toggleModal} nextRoom={this.state.nextRoom} games={this.state.games} createGame={this.createGame}/>
-              <PasswordModal show={this.state.enterPasswordModal} toggleModal={this.toggleModal} routeToGame={this.routeToGame} roomName={this.state.roomName} checkPassword={this.checkPassword} />
-            </div>
-          </div>
-        </div>
-
+        <Jumbotron />
+        <GameList 
+          checkIfPrivate={this.checkIfPrivate}
+          checkPassword={this.checkPassword}
+          createGame={this.createGame}
+          createGameModal={this.state.createGameModal}
+          enterPasswordModal={this.state.enterPasswordModal}
+          games={this.state.games}
+          nextRoom={this.state.nextRoom}
+          roomName={this.state.roomName}
+          routeToGame={this.routeToGame}
+          toggleModal={this.toggleModal}
+        />
       </div>
     );
   }
@@ -151,21 +135,3 @@ RoomSelector.propTypes = {
 };
 
 export default withRouter(RoomSelector);
-
-let GameContainer = props => {
-  console.log('props.game is', props.game);
-  let className = props.game.private ? 'fa-lock' : 'fa-unlock';
-  return (
-    <div id={props.game.room} onClick={evt => props.checkIfPrivate(evt)} className={`list-group-item ${styles.gamecontainer}`}>
-      <div className={`${styles.item1}`}>{props.game.room}</div>
-      <div className={`${styles.item2}`}><i className={`fa ${className} ${styles.icon}`} aria-hidden='true' /></div>
-      <div className={`${styles.item3}`}><i className={`fa fa-user-times ${styles.icon}`} aria-hidden='true' />{props.game.numUsers}</div>
-      <div className={`${styles.item4}`}><i className={`fa fa-users ${styles.icon}`} aria-hidden='true' />{props.game.maxUsers}</div>
-    </div>
-  );
-};
-
-GameContainer.propTypes = {
-  checkIfPrivate: PropTypes.func.isRequired,
-  game: PropTypes.object.isRequired,
-};

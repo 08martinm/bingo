@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import Modal from './modal';
+import Modal from '../modal';
 import styles from './gameModal.scss';
 
 class GameModal extends Component {
@@ -137,9 +137,9 @@ class GameModal extends Component {
 export default GameModal;
 
 GameModal.propTypes = {
+  createGame: PropTypes.func.isRequired,
+  games: PropTypes.array.isRequired,
+  nextRoom: PropTypes.number.isRequired,
   show: PropTypes.bool.isRequired,
   toggleModal: PropTypes.func.isRequired,
-  nextRoom: PropTypes.number.isRequired,
-  games: PropTypes.array.isRequired,
-  createGame: PropTypes.func.isRequired,
 };

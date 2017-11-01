@@ -324,18 +324,36 @@ class Home extends Component {
   render() {
     return (
       <div className='row'>
-        <Nav handleAuth={this.props.handleAuth} bgColor={this.state.bgColor}/>
-        <ScoreKeeping val={'1'} drawn={this.state.drawn} current={this.state.currentBall} numUsers={this.state.numUsers} bgColor={this.state.bgColor}/>
-        <Board board={this.state.board} onClick={this.clickSquare} checkBingo={this.checkBingo}
-          won={this.state.won} gameMaster={this.state.gameMaster} newBoard={this.getNewBoard} invalidAttempt={this.state.invalidAttempt}
-          handleAuth={this.props.handleAuth} drawLotteryBall={this.drawLotteryBall} resetBoard={this.resetAllBoards}
-          bgColor={this.state.bgColor} changeTheme={this.changeTheme}
+        <Nav bgColor={this.state.bgColor} handleAuth={this.props.handleAuth}/>
+
+        <ScoreKeeping
+          bgColor={this.state.bgColor}
+          current={this.state.currentBall}
+          drawn={this.state.drawn}
+          numUsers={this.state.numUsers}
+          val={'1'}
         />
+
+        <Board
+          bgColor={this.state.bgColor}
+          board={this.state.board}
+          changeTheme={this.changeTheme}
+          checkBingo={this.checkBingo}
+          drawLotteryBall={this.drawLotteryBall}
+          gameMaster={this.state.gameMaster}
+          handleAuth={this.props.handleAuth}
+          invalidAttempt={this.state.invalidAttempt}
+          newBoard={this.getNewBoard}
+          onClick={this.clickSquare}
+          resetBoard={this.resetAllBoards}
+          won={this.state.won}
+        />
+
         <Modal show={this.state.buildingBoard}>
           <div className='text-center'>
             <h3>
               Building new board...<br/>
-              ...hold on tight!
+              ...hold on tight!<br/><br/>
             </h3>
             <i className='center-block fa fa-spinner fa-pulse fa-3x fa-fw'></i>
           </div>

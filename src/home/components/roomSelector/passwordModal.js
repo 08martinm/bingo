@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import Modal from './modal';
+import Modal from '../modal';
 import styles from './gameModal.scss';
 import axios from 'axios';
 
@@ -82,9 +82,9 @@ class GameModal extends Component {
 export default GameModal;
 
 GameModal.propTypes = {
-  show: PropTypes.bool.isRequired,
-  toggleModal: PropTypes.func.isRequired,
-  routeToGame: PropTypes.func.isRequired,
   checkPassword: PropTypes.func.isRequired,
   roomName: PropTypes.string.isRequired,
+  routeToGame: PropTypes.func.isRequired,
+  show: PropTypes.bool.isRequired,
+  toggleModal: PropTypes.func.isRequired,
 };

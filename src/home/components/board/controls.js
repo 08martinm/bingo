@@ -30,11 +30,11 @@ let BingoSquare = props => (
 );
 
 BingoSquare.propTypes = {
-  gameMaster: PropTypes.bool.isRequired,
-  drawLotteryBall: PropTypes.func.isRequired,
-  newBoard: PropTypes.func.isRequired,
   bgColor: PropTypes.string,
   changeTheme: PropTypes.func.isRequired,
+  drawLotteryBall: PropTypes.func.isRequired,
+  gameMaster: PropTypes.bool.isRequired,
+  newBoard: PropTypes.func.isRequired,
   resetBoard: PropTypes.func.isRequired,
 };
 
